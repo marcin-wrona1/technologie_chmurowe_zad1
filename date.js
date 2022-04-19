@@ -17,7 +17,7 @@ const getTimezone = (time) => {
     return `GMT${prefix}${String(hours_abs).padStart(2, '0').padEnd(4, '0')}`
 };
 
-module.exports = {
+export {
     getDateString,
     getTimezone
 };

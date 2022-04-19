@@ -1,9 +1,10 @@
-require("dotenv").config();
+import dotenv from "dotenv";
+dotenv.config();
 
-const express = require("express");
+import express from "express";
 
-const { check: check_env, get: get_env } = require("./env.js");
-const { getDateString, getTimezone } = require("./date.js");
+import { check as check_env, get as get_env } from "./env.js";
+import { getDateString, getTimezone } from "./date.js";
 
 check_env();
 

@@ -1,6 +1,5 @@
-const env_vars = require("./constants/env/vars.json"),
-    validators = require("./constants/env/validators.js")
-;
+import env_vars from "./constants/env/vars.json" assert { type: "json" };
+import validators from "./constants/env/validators.js";
 
 let checked = false;
 
@@ -43,7 +42,7 @@ const get = (var_name) => {
     return real_get(var_name);
 }
 
-module.exports =  {
+export {
     check,
     get
 };
