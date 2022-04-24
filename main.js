@@ -17,6 +17,9 @@ const PORT = get_env("EXPRESS_PORT"),
 
 const app = express();
 
+// wczytuj do 'req.ip' dane podawane przez proxy HTTP, m.in. nagłówek 'X-Forwarded-For'
+app.set("trust proxy", true);
+
 app.get(
 	"/",
 	async (req, res) => {
