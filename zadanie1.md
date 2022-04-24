@@ -1,5 +1,15 @@
 # Zadanie 1
 
+## Punkt 2.
+
+### Uwaga - sieci w Dockerze a adresy IP
+
+Docker domyślnie używa programowej sieci mostkowanej, która działa jako proxy TCP. Używając proxy TCP tracimy informację o adresie IP, z którego dane zostały wysłane - wynika to z zasady działania takiego proxy. Zatem po uruchomieniu programu w kontenerze i przekierowaniu portów, każde zapytanie HTTP ma IP źródłowe ustawione na IP wirtualnego urządzenia w sieci zarządzanej przez oprogramowanie Docker.
+
+Zatem w celu poprawnego działania aplikacji należy wykorzystać proxy typu HTTP, które zapisze IP źródłowe w nagłówku HTTP, z którego następnie zostanie ono odczytane przez serwer. W katalogu `/proxy` jest zawarta przykładowa konfiguracja dla serwera `nginx`, która przekierowuje ruch HTTPz portu `80` na port `8080`, dodając przy tym nagłówek `X-Forwarded-For`.
+
+Jeżeli proxy HTTP nie zostanie wykorzystane, IP użytkownika zostanie utracone i zastąpione lokalnym IP. W przypadku wykrycia lokalnego IP, serwer sprawdzi swoje własne publiczne IP i wykorzysta go do uzyskania informacji o lokalizacji. Dzięki temu aplikacja zadziała również w przypadku prawdziwego połączenia z sieci lokalnej - np. z drugiego komputera.
+
 ## Punkt 3.
 Zakładamy, że wszystkie polecenia zostaną wywołane w katalogu głównym repozytorium, np.
 ```sh
