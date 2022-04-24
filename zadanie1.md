@@ -80,3 +80,85 @@ eec15a0107b3   41 minutes ago   CMD ["start"]                                   
 <missing>      4 days ago       /bin/sh -c #(nop) ADD file:3a81c181c66f226bd…   124MB
 [repo]:$
 ```
+
+## Punkt 4.
+Zadanie wykonane za pomocą GitHub Actions (część dodatkowa zadania - Dodatek 1.).
+
+Budowanie obrazów następuje po publikacji (`push`) repozytorium - czyli przy aktualizacji gałęzi `master`:
+```sh
+[repo]:$ grep -n2 -E 'on:$' .github/workflows/dodatek1.yml | tail -n3
+3:on:
+4-  push:
+5-    branches: [master]
+[repo]:$
+```
+
+Architektury wybieramy za pomocą parametru `platforms`:
+```sh
+[repo]:$ grep platforms .github/workflows/dodatek1.yml
+          platforms: linux/arm/v7, linux/arm64/v8, linux/amd64
+[repo]:$
+```
+
+Aby zbudować obrazy wystarczy opublikować gałąź repozytorium kodu źródłowego (`push`):
+```sh
+[repo]:$ git push --force github HEAD:master
+Enumerating objects: 10, done.
+Counting objects: 100% (10/10), done.
+Delta compression using up to 4 threads
+Compressing objects: 100% (5/5), done.
+Writing objects: 100% (7/7), 2.40 KiB | 1.20 MiB/s, done.
+Total 7 (delta 3), reused 0 (delta 0), pack-reused 0
+remote: Resolving deltas: 100% (3/3), completed with 3 local objects.
+To https://github.com/marcin-wrona1/technologie_chmurowe_zad1.git
+ + b8944d0...59733f3 HEAD -> master (forced update)
+[repo]:$
+```
+
+Wynik operacji `push` na GitHub Actions - hash commitu zgadza się z podanym przez `git` w terminalu - `59733f3`:
+
+![Budowanie obrazu za pomocą GitHub Actions](./Docs/images/github_actions_build.png)
+
+### Podpunkt 3 - GitHub Container Registry
+W celu publikacji obrazu na platformie GitHub Container Registry zamiast Docker Hub, podajemy adres rejestru do kroku logowania oraz jako prefiks do nazwy tagu w kroku budowania. Aby nie duplikować adresu repozytorium oraz nazwy taga, zapisujemy je w zmiennych środowiskowych:
+```sh
+[repo]:$ grep -n3 -E 'env:$' .github/workflows/dodatek1.yml | tail -n4
+7:env:
+8-  # podpunkt 3 - wykorzystujemy rejestr GitHub Container Registry (GHCR)
+9-  REGISTRY: ghcr.io
+10-  IMAGE_NAME: technologie_chmurowe_lab:zad1
+[repo]:$
+```
+Wykorzystujemy wartości tych zmiennych jako parametry do kroków budowania (logowanie do repozytorium oraz budowanie i publikacja):
+```sh
+[repo]:$ grep -n1 'env\.REGISTRY' .github/workflows/dodatek1.yml
+29-        with:
+30:          registry: ${{ env.REGISTRY }}
+31-          # nazwa użytkownika - taka sama jak konto GitHub, na które jesteśmy zalogowani podczas push'a
+--
+43-          tags: |
+44:            ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}
+45-          # podpunkt 2 - cache; używamy GitHub Actions (GHA)
+[repo]:$
+```
+
+### Podpunkt 2 - Cache
+Aby wykorzysyać GitHub Actions do przechowywania cache, ustawiamy parametry `cache-from` i `cache-to` na `gha` - integrację Docker z GitHub Actions:
+```sh
+[repo]:$ grep -n1 gha .github/workflows/dodatek1.yml
+45-          # podpunkt 2 - cache; używamy GitHub Actions (GHA)
+46:          cache-from: type=gha
+47:          cache-to: type=gha
+[repo]:$
+```
+
+Aby potwierdzić działanie cache, sprawdzamy wykorzystanie cache przez nasze repozytorium - korzystamy z [zapytania API REST GitHub](https://docs.github.com/en/rest/actions/cache#get-github-actions-cache-usage-for-a-repository):
+```sh
+[repo]:$ OWNER='marcin-wrona1' REPO='technologie_chmurowe_zad1' sh -c 'curl "https://api.github.com/repos/${OWNER}/${REPO}/actions/cache/usage"'
+{
+  "full_name": "marcin-wrona1/technologie_chmurowe_zad1",
+  "active_caches_size_in_bytes": 1417631505,
+  "active_caches_count": 42
+}
+[repo]:$
+```
