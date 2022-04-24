@@ -8,7 +8,7 @@ const getPublicIp = async (addr) => {
     const ip = (
         (
             (ip) => (
-                ip.isIPv4MappedAddress() ? (
+                ip?.isIPv4MappedAddress?.() ? (
                     ip.toIPv4Address()
                 ) : (
                     ip
