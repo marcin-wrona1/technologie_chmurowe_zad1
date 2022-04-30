@@ -5,3 +5,8 @@ Dockerfile
 .gitignore
 proxy/
 .github/
+README.md
+zadanie1.md
+Docs/
+auth/
+certs/
