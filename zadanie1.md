@@ -229,3 +229,78 @@ latest: digest: sha256:aa6c2c047467afc828e77e306041b7fa4a65734fe3449a54aa9c28082
 {"repositories":["wcale-nie-ubuntu"]}
 [repo]:$
 ```
+
+### Punkt 2.
+Według dokumentacji oprogramowania Docker, aby mechanizm `basic auth` zadziałał niezbędne jest włączenie TLS. Zatem musimy skorzystać z protokołu HTTPS i potrzebujemy certyfikatu. Ponieważ na potrzeby zadania nie jest wymagane, aby opublikować nasz rejestr w Internecie, zamiast generować certyfikat dla domeny (np. uzyskanej za pomocą usługi typu `dynamic DNS`), wygenerujemy własny certyfikat i dodamy go do magazynu certyfikatów systemu operacyjnego.
+
+Generujemy certyfikat (wg. dokumentacji [Let's encrypt](https://letsencrypt.org/docs/certificates-for-localhost/)):
+```sh
+[repo]:$ mkdir certs
+[repo]:$ (cd certs && openssl req -x509 -out localhost.crt -keyout localhost.key \
+  -newkey rsa:2048 -nodes -sha256 \
+  -subj '/CN=localhost' -extensions EXT -config <( \
+   printf "[dn]\nCN=localhost\n[req]\ndistinguished_name = dn\n[EXT]\nsubjectAltName=DNS:localhost\nkeyUsage=digitalSignature\nextendedKeyUsage=serverAuth"))
+Generating a 2048 bit RSA private key
+..+++
+......+++
+writing new private key to 'localhost.key'
+-----
+[repo]:$ ls certs
+localhost.crt localhost.key
+[repo]:$
+```
+
+Dodajemy certyfikat do magazynu systemowego (pęk kluczy `System` dla systemu macOS):
+![Import certyfikatu do magazynu systemowego macOS](./Docs/images/keychain_access_certificate_import_1.png)
+W szczegółach certyfikatu ustawiamy opcje zaufania - chcemy, aby system zawsze ufał temu certyfikatowi:
+![Widok zaimportowanego certyfikatu](./Docs/images/keychain_access_certificate_import_2.png)
+
+Następnie generujemy hash hasła dla użytkownika `student`:
+```sh
+[repo]:$ mkdir auth
+[repo]:$ htpasswd -Bbn student student > auth/htpasswd
+[repo]:$ cat auth/htpasswd
+student:$2y$05$vac5yd39T.gt2cyjioV5yO5DY.N6x28eIzU.FOfAu3eZhnWJA5unG
+
+[repo]:$
+```
+
+Ponownie tworzymy kontener ze zmienioną konfiguracją - dodajemy nasz certyfikat oraz plik `htpasswd`, za pomocą mechanizmu `bind-mount`:
+```sh
+[repo]:$ docker stop tc-zad1-dodatek2
+tc-zad1-dodatek2
+[repo]:$ docker container rm tc-zad1-dodatek2
+tc-zad1-dodatek2
+[repo]:$ docker container create -p 6677:5000 -v "$(pwd)"/auth:/auth -e "REGISTRY_AUTH=htpasswd" -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd -v "$(pwd)"/certs:/certs -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/localhost.crt -e REGISTRY_HTTP_TLS_KEY=/certs/localhost.key --name=tc-zad1-dodatek2 registry:2
+c2cfa7c3289e5a3630b6d5ba6b4c27bcc4ff6df68d813db0b3e1d893a7528611
+[repo]:$ docker start tc-zad1-dodatek2
+tc-zad1-dodatek2
+[repo]:$
+```
+
+Sprawdzamy działanie `basic auth`:
+```sh
+[repo]:$ curl localhost:6677/v2/_catalog
+Client sent an HTTP request to an HTTPS server.
+[repo]:$ curl https://localhost:6677/v2/_catalog
+{"errors":[{"code":"UNAUTHORIZED","message":"authentication required","detail":[{"Type":"registry","Class":"","Name":"catalog","Action":"*"}]}]}
+[repo]:$ curl -u student:student https://localhost:6677/v2/_catalog
+{"repositories":[]}
+[repo]:$ docker push localhost:6677/wcale-nie-ubuntu
+Using default tag: latest
+The push refers to repository [localhost:6677/wcale-nie-ubuntu]
+e59fc9495612: Preparing
+no basic auth credentials
+[repo]:$ docker login localhost:6677 2> /dev/null
+Username: student
+Password:
+Login Succeeded
+[repo]:$ docker push localhost:6677/wcale-nie-ubuntu
+Using default tag: latest
+The push refers to repository [localhost:6677/wcale-nie-ubuntu]
+e59fc9495612: Pushed
+latest: digest: sha256:aa6c2c047467afc828e77e306041b7fa4a65734fe3449a54aa9c280822b0d87d size: 529
+[repo]:$ curl -u student:student https://localhost:6677/v2/_catalog
+{"repositories":["wcale-nie-ubuntu"]}
+[repo]:$
+```
