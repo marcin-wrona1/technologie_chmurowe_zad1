@@ -139,16 +139,16 @@ W celu publikacji obrazu na platformie GitHub Container Registry zamiast Docker 
 10-  IMAGE_NAME: technologie_chmurowe_lab:zad1
 [repo]:$
 ```
-Wykorzystujemy wartości tych zmiennych jako parametry do kroków budowania (logowanie do repozytorium oraz budowanie i publikacja):
+Wykorzystujemy wartości tych zmiennych jako parametry do kroków budowania (logowanie do repozytorium oraz budowanie i publikacja). Do parametru `tags` podajemy dwa tagi - jeden na DockerHub i jeden na GitHub Container Registry:
 ```sh
 [repo]:$ grep -n1 'env\.REGISTRY' .github/workflows/dodatek1.yml
-29-        with:
-30:          registry: ${{ env.REGISTRY }}
-31-          # nazwa użytkownika - taka sama jak konto GitHub, na które jesteśmy zalogowani podczas push'a
+35-        with:
+36:          registry: ${{ env.REGISTRY }}
+37-          # nazwa użytkownika - taka sama jak konto GitHub, na które jesteśmy zalogowani podczas push'a
 --
-43-          tags: |
-44:            ${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}
-45-          # podpunkt 2 - cache; używamy GitHub Actions (GHA)
+49-          tags: |
+50:            ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.IMAGE_NAME }},${{ env.REGISTRY }}/${{ github.actor }}/${{ env.IMAGE_NAME }}
+51-          # podpunkt 2 - cache; używamy GitHub Actions (GHA)
 [repo]:$
 ```
 
