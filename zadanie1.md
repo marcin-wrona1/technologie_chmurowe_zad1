@@ -172,3 +172,60 @@ Aby potwierdzić działanie cache, sprawdzamy wykorzystanie cache przez nasze re
 }
 [repo]:$
 ```
+
+## Dodatek 2
+### Punkt 1. - podpunkt a.
+Pobieramy obraz rejestru:
+```sh
+[repo]:$ docker pull registry:2
+2: Pulling from library/registry
+Digest: sha256:dc3cdf6d35677b54288fe9f04c34f59e85463ea7510c2a9703195b63187a7487
+Status: Image is up to date for registry:2
+docker.io/library/registry:2
+[repo]:$
+```
+
+Tworzymy kontener. Serwer nasłuchuje na porcie `5000` wewnątrz kontenera, więc właśnie na ten port przekierujemy komunikację z portu `6677`. Użwyamy parametru `-p`:
+```sh
+[repo]:$ docker container create -p 6677:5000 --name=tc-zad1-dodatek2 registry:2
+3be2845c2f1b0b668e4575b2f49cb84e04b15ab28ef03a2de840171f39b5836f
+[repo]:$ docker container ls -a | grep tc-zad1-dodatek2
+3be2845c2f1b   registry:2                              "/entrypoint.sh /etc…"   8 seconds ago   Created                                            tc-zad1-dodatek2
+[repo]:$
+```
+
+Uruchamiamy kontener, sprawdzamy działanie rejestru (wyświetlamy dostępne obrazy za pomocą API REST):
+```sh
+[repo]:$ docker start tc-zad1-dodatek2
+tc-zad1-dodatek2
+[repo]:$ curl localhost:6677/v2/_catalog
+{"repositories":[]}
+[repo]:$
+```
+
+Dostajemy odpowiedź: lista repozytoriów jest pusta. Serwer rejestru działa i mamy do niego dostęp.
+
+### Punkt 1. - podpunkt b.
+Pobieramy obraz ubuntu:
+```sh
+[repo]:$ docker pull ubuntu:latest
+latest: Pulling from library/ubuntu
+125a6e411906: Pull complete
+Digest: sha256:26c68657ccce2cb0a31b330cb0be2b5e108d467f641c62e13ab40cbec258c68d
+Status: Downloaded newer image for ubuntu:latest
+docker.io/library/ubuntu:latest
+[repo]:$
+```
+
+Zmieniamy nazwę, zapisujemy w rejestrze:
+```sh
+[repo]:$ docker tag ubuntu:latest localhost:6677/wcale-nie-ubuntu
+[repo]:$ docker push localhost:6677/wcale-nie-ubuntu
+Using default tag: latest
+The push refers to repository [localhost:6677/wcale-nie-ubuntu]
+e59fc9495612: Pushed
+latest: digest: sha256:aa6c2c047467afc828e77e306041b7fa4a65734fe3449a54aa9c280822b0d87d size: 529
+[repo]:$ curl localhost:6677/v2/_catalog
+{"repositories":["wcale-nie-ubuntu"]}
+[repo]:$
+```
