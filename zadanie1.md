@@ -53,13 +53,13 @@ a. Budujemy obraz, przydzielając mu nazwę tagu `tc-lab-zad1`:
 [repo]:$ docker build -t tc-lab-zad1 .
 ```
 
-b. Tworzymy kontener; od razu podajemy port do przekierowania, aby Docker go zapamiętał - dzięki temu nie musimy go podawać przy uruchamianiu. Przydzielamy nazwę kontenera `tc-lab-zad1-c1`. Podajemy nazwę taga z poprzedniego kroku (`tc-lab-zad1`):
+b. Tworzymy kontener, podajemy port do przekierowania. Przydzielamy nazwę kontenera `tc-lab-zad1-c1`. Podajemy nazwę taga z poprzedniego kroku (`tc-lab-zad1`):
 
 ```sh
 [repo]:$ docker create -p 8080:80 --name tc-lab-zad1-c1 tc-lab-zad1
 ```
 
-c. Używamy polecenia `docker logs` i nazwy (lub ID) kontenera - z poprzedniego kroku (`tc-lab-zad1-c1`)
+c. Używamy polecenia `docker logs` i nazwy kontenera z poprzedniego kroku (`tc-lab-zad1-c1`)
 
 ```sh
 [repo]:$ docker logs tc-lab-zad1-c1
@@ -78,7 +78,7 @@ Port: 80
 [repo]:$
 ```
 
-Możemy również skorzystać z graficznego interfejsu, jeśli jest on dostępny w wersji oprogramowania Docker na używanym systemie operacyjnym. Np. na macOS:
+Możemy również skorzystać z graficznego interfejsu, jeśli jest on dostępny w wersji oprogramowania Docker na używanym systemie operacyjnym. Np. na macOS, używając aplikacji `Docker Desktop for Mac`:
 
 ![Zrzut ekranu - graficzny Docker na macOS - lista kontenerów](./Docs/images/docker_macos_gui_container_list.png)
 
@@ -121,7 +121,7 @@ eec15a0107b3   41 minutes ago   CMD ["start"]                                   
 
 Zadanie wykonane za pomocą GitHub Actions (część dodatkowa zadania - Dodatek 1.).
 
-Budowanie obrazów następuje po publikacji (`push`) repozytorium - czyli przy aktualizacji gałęzi `master`:
+Budowanie obrazów następuje po publikacji (`push`) gałęzi `master` repozytorium:
 
 ```sh
 [repo]:$ grep -n2 -E 'on:$' .github/workflows/dodatek1.yml | tail -n3
@@ -139,7 +139,7 @@ Architektury wybieramy za pomocą parametru `platforms`:
 [repo]:$
 ```
 
-Aby zbudować obrazy wystarczy opublikować gałąź repozytorium kodu źródłowego (`push`):
+Aby zbudować obrazy należy opublikować (operacja `push`) gałąź repozytorium kodu źródłowego:
 
 ```sh
 [repo]:$ git push --force github HEAD:master
@@ -155,13 +155,13 @@ To https://github.com/marcin-wrona1/technologie_chmurowe_zad1.git
 [repo]:$
 ```
 
-Wynik operacji `push` na GitHub Actions - hash commitu zgadza się z podanym przez `git` w terminalu - `59733f3`:
+Wynik operacji `push` na GitHub Actions (hash commitu zgadza się z podanym przez polecenie `git` w terminalu - `59733f3`):
 
 ![Budowanie obrazu za pomocą GitHub Actions](./Docs/images/github_actions_build.png)
 
 ### Podpunkt 3 - GitHub Container Registry
 
-W celu publikacji obrazu na platformie GitHub Container Registry zamiast Docker Hub, podajemy adres rejestru do kroku logowania oraz jako prefiks do nazwy tagu w kroku budowania. Aby nie duplikować adresu repozytorium oraz nazwy taga, zapisujemy je w zmiennych środowiskowych:
+W celu publikacji obrazu na platformie GitHub Container Registry, podajemy adres rejestru do kroku logowania oraz jako prefiks do nazwy tagu w kroku budowania. Aby nie duplikować adresu repozytorium oraz nazwy taga, zapisujemy je w zmiennych środowiskowych:
 
 ```sh
 [repo]:$ grep -n3 -E 'env:$' .github/workflows/dodatek1.yml | tail -n4
