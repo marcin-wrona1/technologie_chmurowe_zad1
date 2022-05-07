@@ -8,7 +8,7 @@ WORKDIR /app
 COPY . .
 
 # instalujemy moduły
-RUN npm install --production
+RUN npm install --omit=dev
 
 # konfiguracja serwera - zmienne środowiskowe
 ENV NODE_ENV production
