@@ -1,5 +1,21 @@
 # Zadanie 1
 
+## Punkt 1.
+
+Demonstracja działania programu:
+
+![Strona generowana przez serwer - widok w przeglądarce](./Docs/images/project_page_browser.png)
+
+```sh
+[repo]:% curl localhost:8080
+
+			<p>Twoje IP: 83.9.49.50</p>
+			<p>Twoja strefa czasowa: Europe/Warsaw</p>
+			<p>Data i godzina: 7.05.2022, 21:15:45</p>
+
+[repo]:%
+```
+
 ## Punkt 2.
 
 ### Uwaga - sieci w Dockerze a adresy IP
