@@ -27,7 +27,9 @@ Zatem w celu poprawnego działania aplikacji należy wykorzystać proxy typu HTT
 Jeżeli proxy HTTP nie zostanie wykorzystane, IP użytkownika zostanie utracone i zastąpione lokalnym IP. W przypadku wykrycia lokalnego IP, serwer sprawdzi swoje własne publiczne IP i wykorzysta go do uzyskania informacji o lokalizacji. Dzięki temu aplikacja zadziała również w przypadku prawdziwego połączenia z sieci lokalnej - np. z drugiego komputera.
 
 ## Punkt 3.
+
 Zakładamy, że wszystkie polecenia zostaną wywołane w katalogu głównym repozytorium, np.
+
 ```sh
 [/tmp]:$ git clone https://github.com/[...].git repo
 Cloning into 'repo'...
@@ -44,14 +46,19 @@ packege.json
 zadanie1.md
 [...]
 ```
+
 a. Budujemy obraz, przydzielając mu nazwę tagu `tc-lab-zad1`:
+
 ```sh
 [repo]:$ docker build -t tc-lab-zad1 .
 ```
+
 b. Tworzymy kontener; od razu podajemy port do przekierowania, aby Docker go zapamiętał - dzięki temu nie musimy go podawać przy uruchamianiu. Przydzielamy nazwę kontenera `tc-lab-zad1-c1`. Podajemy nazwę taga z poprzedniego kroku (`tc-lab-zad1`):
+
 ```sh
 [repo]:$ docker create -p 8080:80 --name tc-lab-zad1-c1 tc-lab-zad1
 ```
+
 c. Używamy polecenia `docker logs` i nazwy (lub ID) kontenera - z poprzedniego kroku (`tc-lab-zad1-c1`)
 
 ```sh
@@ -72,12 +79,15 @@ Port: 80
 ```
 
 Możemy również skorzystać z graficznego interfejsu, jeśli jest on dostępny w wersji oprogramowania Docker na używanym systemie operacyjnym. Np. na macOS:
+
 ![Zrzut ekranu - graficzny Docker na macOS - lista kontenerów](./Docs/images/docker_macos_gui_container_list.png)
 
 Wybieramy kontener z listy i sprawdzamy zakładkę `LOGS`:
+
 ![Zrzut ekranu - graficzny Docker na macOS - logi kontenera](./Docs/images/docker_macos_gui_container_log.png)
 
 d. Korzystamy z polecenia `docker history`, podajemy nazwę tagu z kroku `a.` - `tc-lab-zad1`:
+
 ```sh
 [repo]:$ docker history tc-lab-zad1
 IMAGE          CREATED          CREATED BY                                      SIZE      COMMENT
@@ -108,9 +118,11 @@ eec15a0107b3   41 minutes ago   CMD ["start"]                                   
 ```
 
 ## Punkt 4.
+
 Zadanie wykonane za pomocą GitHub Actions (część dodatkowa zadania - Dodatek 1.).
 
 Budowanie obrazów następuje po publikacji (`push`) repozytorium - czyli przy aktualizacji gałęzi `master`:
+
 ```sh
 [repo]:$ grep -n2 -E 'on:$' .github/workflows/dodatek1.yml | tail -n3
 3:on:
@@ -120,6 +132,7 @@ Budowanie obrazów następuje po publikacji (`push`) repozytorium - czyli przy a
 ```
 
 Architektury wybieramy za pomocą parametru `platforms`:
+
 ```sh
 [repo]:$ grep platforms .github/workflows/dodatek1.yml
           platforms: linux/arm/v7, linux/arm64/v8, linux/amd64
@@ -127,6 +140,7 @@ Architektury wybieramy za pomocą parametru `platforms`:
 ```
 
 Aby zbudować obrazy wystarczy opublikować gałąź repozytorium kodu źródłowego (`push`):
+
 ```sh
 [repo]:$ git push --force github HEAD:master
 Enumerating objects: 10, done.
@@ -146,7 +160,9 @@ Wynik operacji `push` na GitHub Actions - hash commitu zgadza się z podanym prz
 ![Budowanie obrazu za pomocą GitHub Actions](./Docs/images/github_actions_build.png)
 
 ### Podpunkt 3 - GitHub Container Registry
+
 W celu publikacji obrazu na platformie GitHub Container Registry zamiast Docker Hub, podajemy adres rejestru do kroku logowania oraz jako prefiks do nazwy tagu w kroku budowania. Aby nie duplikować adresu repozytorium oraz nazwy taga, zapisujemy je w zmiennych środowiskowych:
+
 ```sh
 [repo]:$ grep -n3 -E 'env:$' .github/workflows/dodatek1.yml | tail -n4
 7:env:
@@ -155,7 +171,9 @@ W celu publikacji obrazu na platformie GitHub Container Registry zamiast Docker 
 10-  IMAGE_NAME: technologie_chmurowe_lab:zad1
 [repo]:$
 ```
+
 Wykorzystujemy wartości tych zmiennych jako parametry do kroków budowania (logowanie do repozytorium oraz budowanie i publikacja). Do parametru `tags` podajemy dwa tagi - jeden na DockerHub i jeden na GitHub Container Registry:
+
 ```sh
 [repo]:$ grep -n1 'env\.REGISTRY' .github/workflows/dodatek1.yml
 35-        with:
@@ -169,7 +187,9 @@ Wykorzystujemy wartości tych zmiennych jako parametry do kroków budowania (log
 ```
 
 ### Podpunkt 2 - Cache
+
 Aby wykorzysyać GitHub Actions do przechowywania cache, ustawiamy parametry `cache-from` i `cache-to` na `gha` - integrację Docker z GitHub Actions:
+
 ```sh
 [repo]:$ grep -n1 gha .github/workflows/dodatek1.yml
 45-          # podpunkt 2 - cache; używamy GitHub Actions (GHA)
@@ -179,6 +199,7 @@ Aby wykorzysyać GitHub Actions do przechowywania cache, ustawiamy parametry `ca
 ```
 
 Aby potwierdzić działanie cache, sprawdzamy wykorzystanie cache przez nasze repozytorium - korzystamy z [zapytania API REST GitHub](https://docs.github.com/en/rest/actions/cache#get-github-actions-cache-usage-for-a-repository):
+
 ```sh
 [repo]:$ OWNER='marcin-wrona1' REPO='technologie_chmurowe_zad1' sh -c 'curl "https://api.github.com/repos/${OWNER}/${REPO}/actions/cache/usage"'
 {
@@ -190,8 +211,11 @@ Aby potwierdzić działanie cache, sprawdzamy wykorzystanie cache przez nasze re
 ```
 
 ## Dodatek 2
+
 ### Punkt 1. - podpunkt a.
+
 Pobieramy obraz rejestru:
+
 ```sh
 [repo]:$ docker pull registry:2
 2: Pulling from library/registry
@@ -202,6 +226,7 @@ docker.io/library/registry:2
 ```
 
 Tworzymy kontener. Serwer nasłuchuje na porcie `5000` wewnątrz kontenera, więc właśnie na ten port przekierujemy komunikację z portu `6677`. Użwyamy parametru `-p`:
+
 ```sh
 [repo]:$ docker container create -p 6677:5000 --name=tc-zad1-dodatek2 registry:2
 3be2845c2f1b0b668e4575b2f49cb84e04b15ab28ef03a2de840171f39b5836f
@@ -211,6 +236,7 @@ Tworzymy kontener. Serwer nasłuchuje na porcie `5000` wewnątrz kontenera, wię
 ```
 
 Uruchamiamy kontener, sprawdzamy działanie rejestru (wyświetlamy dostępne obrazy za pomocą API REST):
+
 ```sh
 [repo]:$ docker start tc-zad1-dodatek2
 tc-zad1-dodatek2
@@ -222,7 +248,9 @@ tc-zad1-dodatek2
 Dostajemy odpowiedź: lista repozytoriów jest pusta. Serwer rejestru działa i mamy do niego dostęp.
 
 ### Punkt 1. - podpunkt b.
+
 Pobieramy obraz ubuntu:
+
 ```sh
 [repo]:$ docker pull ubuntu:latest
 latest: Pulling from library/ubuntu
@@ -234,6 +262,7 @@ docker.io/library/ubuntu:latest
 ```
 
 Zmieniamy nazwę, zapisujemy w rejestrze:
+
 ```sh
 [repo]:$ docker tag ubuntu:latest localhost:6677/wcale-nie-ubuntu
 [repo]:$ docker push localhost:6677/wcale-nie-ubuntu
@@ -247,9 +276,11 @@ latest: digest: sha256:aa6c2c047467afc828e77e306041b7fa4a65734fe3449a54aa9c28082
 ```
 
 ### Punkt 2.
+
 Według dokumentacji oprogramowania Docker, aby mechanizm `basic auth` zadziałał niezbędne jest włączenie TLS. Zatem musimy skorzystać z protokołu HTTPS i potrzebujemy certyfikatu. Ponieważ na potrzeby zadania nie jest wymagane, aby opublikować nasz rejestr w Internecie, zamiast generować certyfikat dla domeny (np. uzyskanej za pomocą usługi typu `dynamic DNS`), wygenerujemy własny certyfikat i dodamy go do magazynu certyfikatów systemu operacyjnego.
 
 Generujemy certyfikat (wg. dokumentacji [Let's encrypt](https://letsencrypt.org/docs/certificates-for-localhost/)):
+
 ```sh
 [repo]:$ mkdir certs
 [repo]:$ (cd certs && openssl req -x509 -out localhost.crt -keyout localhost.key \
@@ -267,11 +298,15 @@ localhost.crt localhost.key
 ```
 
 Dodajemy certyfikat do magazynu systemowego (pęk kluczy `System` dla systemu macOS):
+
 ![Import certyfikatu do magazynu systemowego macOS](./Docs/images/keychain_access_certificate_import_1.png)
+
 W szczegółach certyfikatu ustawiamy opcje zaufania - chcemy, aby system zawsze ufał temu certyfikatowi:
+
 ![Widok zaimportowanego certyfikatu](./Docs/images/keychain_access_certificate_import_2.png)
 
 Następnie generujemy hash hasła dla użytkownika `student`:
+
 ```sh
 [repo]:$ mkdir auth
 [repo]:$ htpasswd -Bbn student student > auth/htpasswd
@@ -282,6 +317,7 @@ student:$2y$05$vac5yd39T.gt2cyjioV5yO5DY.N6x28eIzU.FOfAu3eZhnWJA5unG
 ```
 
 Ponownie tworzymy kontener ze zmienioną konfiguracją - dodajemy nasz certyfikat oraz plik `htpasswd`, za pomocą mechanizmu `bind-mount`:
+
 ```sh
 [repo]:$ docker stop tc-zad1-dodatek2
 tc-zad1-dodatek2
@@ -295,6 +331,7 @@ tc-zad1-dodatek2
 ```
 
 Sprawdzamy działanie `basic auth`:
+
 ```sh
 [repo]:$ curl localhost:6677/v2/_catalog
 Client sent an HTTP request to an HTTPS server.
